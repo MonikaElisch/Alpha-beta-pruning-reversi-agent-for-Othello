@@ -241,13 +241,13 @@ class NorAgent(ReversiAgent):
 
 class Agent47(ReversiAgent):
     "A pruning agent"
-    DEEPLIMIT = 5
+    DEEPLIMIT = 7  # Adjusting depth limit for more informed decisions
     def search(
             self, board, valid_actions,
             output_move_row, output_move_column):
         """Set the intended move to the value of output_moves."""
-        # valid_actions = actions(board, self.player)
-        # print(valid_actions)
+        #valid_actions = actions(board, self.player)
+        #print(valid_actions)
         if len(valid_actions) == 0:
             output_move_row.value = -1
             output_move_column.value = -1
@@ -272,10 +272,10 @@ class Agent47(ReversiAgent):
             return self.evaluation(board)
         valid_actions = actions(board, opponent)
         if len(valid_actions) == 0:
-            return self.ABmax_value(np.inf,-np.inf,board, depth + 1)  # skip the turn.
+            return self.ABmax_value(np.inf,-np.inf,board, depth - 1)  # skip the turn.
         v = 999999
         for action in valid_actions:
-            v = min(v, self.ABmax_value(np.inf,-np.inf,transition(board, opponent, action), depth+1))
+            v = min(v, self.ABmax_value(np.inf,-np.inf,transition(board, opponent, action), depth-1))
             #pruning Process
             #based on https://code.activestate.com/recipes/580698-reversi-othello/
             beta =min(beta,v)
@@ -290,10 +290,10 @@ class Agent47(ReversiAgent):
             return self.evaluation(board)
         valid_actions = actions(board, self.player)
         if len(valid_actions) == 0:
-            return self.ABmin_value(np.inf,-np.inf,board, depth + 1)  # skip the turn.
+            return self.ABmin_value(np.inf,-np.inf,board, depth - 1)  # skip the turn.
         v = -999999
         for action in valid_actions:
-            v = min(v, self.ABmin_value(np.inf,-np.inf,transition(board, self.player, action), depth+1))
+            v = min(v, self.ABmin_value(np.inf,-np.inf,transition(board, self.player, action), depth-1))
             alpha =max(alpha,v)
             if beta <= alpha:
                 break
@@ -307,5 +307,13 @@ class Agent47(ReversiAgent):
             return 0
 
     def evaluation(self, board: np.ndarray) -> float:
-        # a dummy evaluation that return diff scores
-        return (board == self.player).sum() - (board == (self.player * -1)).sum()
+    
+        # Based on: https://github.com/sadeqsheikhi/reversi_python_ai/blob/master/reversiai.py
+        #           https://kartikkukreja.wordpress.com/2013/03/30/heuristic-function-for-reversiothello/
+        max_moves = len(actions(board, self.player))
+        min_moves = len(actions(board, self.player * -1))
+        print(max_moves - min_moves)
+        return  max_moves-min_moves
+        
+
+     
